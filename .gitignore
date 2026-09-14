@@ -1,0 +1,64 @@
+## .NET / ASP.NET Core
+
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# SQLite databases (local runtime data, not source)
+*.db
+*.db-shm
+*.db-wal
+
+# EF Core migrations snapshot backups (keep actual migrations, ignore backups)
+*.bak
+
+# Secrets (never commit these)
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+
+# Logs
+*.log
+logs/
+
+# Test results
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Rider
+.idea/
+*.sln.iml
+
+# Environment files
+.env
