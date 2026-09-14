@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 public class Transaction
 {
@@ -18,7 +19,7 @@ public class Transaction
 
     [Required]
     public string UserId { get; set; }
-    public ApplicationUser? User { get; set; }
+    public IdentityUser? User { get; set; }
 
     public int CategoryId { get; set; }
     public Category? Category { get; set; }

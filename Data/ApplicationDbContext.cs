@@ -5,4 +5,6 @@ namespace BudgetBook.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
 {
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
 }
