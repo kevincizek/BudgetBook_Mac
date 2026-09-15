@@ -64,6 +64,7 @@ using (var scope = app.Services.CreateScope())
     }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/Home/StatusCode", "?code={0}");
 app.UseRouting();
 
 app.UseAuthorization();
