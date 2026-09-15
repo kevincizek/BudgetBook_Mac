@@ -12,6 +12,7 @@ public class Transaction
     [DataType(DataType.Date)]
     public DateTime BookingDate { get; set; }
 
+    [EnumDataType(typeof(TransactionType))]
     public TransactionType Type { get; set; }
 
     [StringLength(200)]

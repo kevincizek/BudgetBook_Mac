@@ -9,6 +9,7 @@ public class Category
     [StringLength(50)]
     public string Name { get; set; }
 
+    [EnumDataType(typeof(TransactionType))]
     public TransactionType Type { get; set; }
 
     public bool IsActive { get; set; } = true;

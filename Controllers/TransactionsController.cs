@@ -76,6 +76,11 @@ namespace BudgetBook.Controllers
             ModelState.Remove(nameof(Transaction.UserId));
             ModelState.Remove(nameof(Transaction.CreatedAt));
 
+            if (transaction.BookingDate.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(Transaction.BookingDate), "The Booking Date cannot be in the future.");
+            }
+
             var categoryIsValid = await _context.Categories
                 .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive);
 
@@ -135,6 +140,11 @@ namespace BudgetBook.Controllers
                 .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (existing == null) return NotFound();
+
+            if (transaction.BookingDate.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(Transaction.BookingDate), "The Booking Date cannot be in the future.");
+            }
 
             var categoryIsValid = await _context.Categories
                 .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive);
