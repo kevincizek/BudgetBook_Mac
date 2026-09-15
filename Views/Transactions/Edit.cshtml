@@ -14,7 +14,7 @@
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
+                <input asp-for="Amount" class="form-control" data-val="false"/>
                 <span asp-validation-for="Amount" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -50,4 +50,11 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.querySelector('[name="Amount"]').addEventListener('blur', function () {
+            if (this.value.includes('.') && !this.value.includes(',')) {
+                this.value = this.value.replace('.', ',');
+            }
+        });
+    </script>
 }

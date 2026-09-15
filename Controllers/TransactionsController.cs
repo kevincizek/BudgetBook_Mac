@@ -59,7 +59,7 @@ namespace BudgetBook.Controllers
         // GET: Transactions/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.IsActive), "Id", "Name");
             return View();
         }
 
@@ -76,13 +76,21 @@ namespace BudgetBook.Controllers
             ModelState.Remove(nameof(Transaction.UserId));
             ModelState.Remove(nameof(Transaction.CreatedAt));
 
+            var categoryIsValid = await _context.Categories
+                .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive);
+
+            if (!categoryIsValid)
+            {
+                ModelState.AddModelError(nameof(Transaction.CategoryId), "The selected category is not active.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.IsActive), "Id", "Name", transaction.CategoryId);
             return View(transaction);
         }
 
@@ -103,7 +111,7 @@ namespace BudgetBook.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.IsActive), "Id", "Name", transaction.CategoryId);
             return View(transaction);
         }
 
@@ -128,6 +136,14 @@ namespace BudgetBook.Controllers
 
             if (existing == null) return NotFound();
 
+            var categoryIsValid = await _context.Categories
+                .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive);
+
+            if (!categoryIsValid)
+            {
+                ModelState.AddModelError(nameof(Transaction.CategoryId), "The selected category is not active.");
+            }
+
             if (ModelState.IsValid)
             {
                 existing.Amount = transaction.Amount;
@@ -139,7 +155,7 @@ namespace BudgetBook.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.IsActive), "Id", "Name", transaction.CategoryId);
             return View(transaction);
         }
 
