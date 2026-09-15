@@ -26,8 +26,12 @@ namespace BudgetBook.Controllers
         // GET: Transactions
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Transactions.Include(t => t.Category).Include(t => t.User);
-            return View(await applicationDbContext.ToListAsync());
+            var userId = _userManager.GetUserId(User);
+            var transactions = _context.Transactions
+                .Include(t => t.Category)
+                .Where(t => t.UserId == userId);
+
+            return View(await transactions.ToListAsync());
         }
 
         // GET: Transactions/Details/5
@@ -38,10 +42,12 @@ namespace BudgetBook.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
+
             var transaction = await _context.Transactions
                 .Include(t => t.Category)
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (transaction == null)
             {
                 return NotFound();
@@ -54,7 +60,6 @@ namespace BudgetBook.Controllers
         public IActionResult Create()
         {
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
@@ -63,10 +68,13 @@ namespace BudgetBook.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Amount,BookingDate,Type,Description,UserId,CategoryId")] Transaction transaction)
+        public async Task<IActionResult> Create([Bind("Amount,BookingDate,Type,Description,CategoryId")] Transaction transaction)
         {
             transaction.UserId = _userManager.GetUserId(User);
             transaction.CreatedAt = DateTime.UtcNow;
+
+            ModelState.Remove(nameof(Transaction.UserId));
+            ModelState.Remove(nameof(Transaction.CreatedAt));
 
             if (ModelState.IsValid)
             {
@@ -86,13 +94,16 @@ namespace BudgetBook.Controllers
                 return NotFound();
             }
 
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+
+            var transaction = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (transaction == null)
             {
                 return NotFound();
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", transaction.UserId);
             return View(transaction);
         }
 
@@ -101,35 +112,34 @@ namespace BudgetBook.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Amount,BookingDate,Type,Description,UserId,CategoryId,CreatedAt")] Transaction transaction)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Amount,BookingDate,Type,Description,CategoryId")] Transaction transaction)
         {
             if (id != transaction.Id)
             {
                 return NotFound();
             }
 
+            ModelState.Remove(nameof(Transaction.UserId));
+            ModelState.Remove(nameof(Transaction.CreatedAt));
+
+            var userId = _userManager.GetUserId(User);
+            var existing = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            if (existing == null) return NotFound();
+
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(transaction);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TransactionExists(transaction.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                existing.Amount = transaction.Amount;
+                existing.BookingDate = transaction.BookingDate;
+                existing.Type = transaction.Type;
+                existing.Description = transaction.Description;
+                existing.CategoryId = transaction.CategoryId;
+
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", transaction.UserId);
             return View(transaction);
         }
 
@@ -141,10 +151,11 @@ namespace BudgetBook.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
+
             var transaction = await _context.Transactions
                 .Include(t => t.Category)
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (transaction == null)
             {
                 return NotFound();
@@ -158,7 +169,11 @@ namespace BudgetBook.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+
+            var transaction = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
             if (transaction != null)
             {
                 _context.Transactions.Remove(transaction);

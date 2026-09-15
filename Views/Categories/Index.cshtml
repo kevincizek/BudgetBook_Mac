@@ -1,10 +1,10 @@
 @model IEnumerable<Category>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Categories List";
 }
 
-<h1>Index</h1>
+<h1>Categories List</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -36,11 +36,14 @@
             <td>
                 @Html.DisplayFor(modelItem => item.IsActive)
             </td>
-            <td>
+            @if (User.IsInRole("Admin"))
+            {
+                <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
+                </td>
+            }
         </tr>
 }
     </tbody>
