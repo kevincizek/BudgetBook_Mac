@@ -1,0 +1,107 @@
+@model StatisticsViewModel
+@{
+    ViewData["Title"] = "Statistics";
+}
+
+<h2>Statistics</h2>
+
+<form asp-action="Index" method="get" class="row g-3 mb-4">
+    <div class="col-auto">
+        <label>From</label>
+        <input type="date" name="startDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label>To</label>
+        <input type="date" name="endDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label>Type</label>
+        <select name="type" class="form-control">
+            <option value="">All</option>
+            @foreach (var value in Enum.GetValues<TransactionType>())
+            {
+                <option value="@value" selected="@(ViewBag.SelectedType?.Equals(value) == true)">@value</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label>Category</label>
+        <select name="categoryId" class="form-control">
+            <option value="">All</option>
+            @foreach (var category in ViewBag.AllCategories as List<Category>)
+            {
+                <option value="@category.Id" selected="@(ViewBag.SelectedCategoryId == category.Id)">@category.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="Index" class="btn btn-secondary">Clear Filters</a>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Income</h5>
+                <p class="card-text fs-4">@Model.TotalIncome.ToString("N2") €</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Expense</h5>
+                <p class="card-text fs-4">@Model.TotalExpense.ToString("N2") €</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card @(Model.Saldo >= 0 ? "text-bg-primary" : "text-bg-warning") mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Balance (Saldo)</h5>
+                <p class="card-text fs-4">@Model.Saldo.ToString("N2") €</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <h4>Expenses by Category</h4>
+        <table class="table">
+            <thead>
+                <tr><th>Category</th><th class="text-end">Value</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.ExpensesByCategory)
+                {
+                    <tr>
+                        <td>@c.CategoryName</td>
+                        <td class="text-end">@c.Total.ToString("N2") €</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h4>Transactions by Month</h4>
+        <table class="table">
+            <thead>
+                <tr><th>Month</th><th class="text-end">Income</th><th class="text-end">Expense</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.TransactionsByMonth)
+                {
+                    <tr>
+                        <td>@m.Label</td>
+                        <td class="text-end">@m.Income.ToString("N2") €</td>
+                        <td class="text-end">@m.Expense.ToString("N2") €</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

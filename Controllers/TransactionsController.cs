@@ -24,14 +24,47 @@ namespace BudgetBook.Controllers
         }
 
         // GET: Transactions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, TransactionType? type, int? categoryId)
         {
             var userId = _userManager.GetUserId(User);
-            var transactions = _context.Transactions
+
+            var query = _context.Transactions
                 .Include(t => t.Category)
                 .Where(t => t.UserId == userId);
 
-            return View(await transactions.ToListAsync());
+            if (startDate.HasValue)
+            {
+                query = query.Where(t => t.BookingDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(t => t.BookingDate <= endDate.Value);
+            }
+
+            if (type.HasValue)
+            {
+                query = query.Where(t => t.Type == type.Value);
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(t => t.CategoryId == categoryId.Value);
+            }
+
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.SelectedType = type;
+            ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.AllCategories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+
+            var transactions = await query
+                .Include(t => t.Category)
+                .Where(t => t.UserId == userId)
+                .OrderByDescending(t => t.BookingDate)
+                .ToListAsync();
+
+            return View(transactions);
         }
 
         // GET: Transactions/Details/5

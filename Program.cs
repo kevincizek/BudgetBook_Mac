@@ -44,7 +44,9 @@ using (var scope = app.Services.CreateScope())
 
         context.Transactions.AddRange(
             new Transaction { Amount = 2500.00m, BookingDate = new DateTime(2026, 9, 1), Type = TransactionType.Income, Description = "Salary September", UserId = demoUser.Id, CategoryId = salary.Id, CreatedAt = DateTime.UtcNow },
-            new Transaction { Amount = 850.00m, BookingDate = new DateTime(2026, 9, 3), Type = TransactionType.Expense, Description = "Rent September", UserId = demoUser.Id, CategoryId = rent.Id, CreatedAt = DateTime.UtcNow }
+            new Transaction { Amount = 850.00m, BookingDate = new DateTime(2026, 9, 3), Type = TransactionType.Expense, Description = "Rent September", UserId = demoUser.Id, CategoryId = rent.Id, CreatedAt = DateTime.UtcNow },
+            new Transaction { Amount = 250.00m, BookingDate = new DateTime(2026, 9, 4), Type = TransactionType.Expense, Description = "Groceries September", UserId = demoUser.Id, CategoryId = groceries.Id, CreatedAt = DateTime.UtcNow },
+            new Transaction { Amount = 100.00m, BookingDate = new DateTime(2026, 9, 5), Type = TransactionType.Income, Description = "Other Income", UserId = demoUser.Id, CategoryId = otherIncome.Id, CreatedAt = DateTime.UtcNow }
         );
 
         await context.SaveChangesAsync();

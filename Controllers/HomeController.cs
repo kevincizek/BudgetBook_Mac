@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using BudgetBook.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BudgetBook.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
     public IActionResult Index()
