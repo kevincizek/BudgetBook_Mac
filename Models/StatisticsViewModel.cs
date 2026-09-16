@@ -9,6 +9,7 @@ public class StatisticsViewModel
 
     public List<CategorySummary> ExpensesByCategory { get; set; } = new();
     public List<MonthlySummary> TransactionsByMonth { get; set; } = new();
+    public CategorySummary? TopCategory => ExpensesByCategory.FirstOrDefault();
 }
 
 public class CategorySummary

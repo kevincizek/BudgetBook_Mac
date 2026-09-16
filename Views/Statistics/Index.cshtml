@@ -65,6 +65,22 @@
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+    <div class="card text-bg-secondary mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Top Category</h5>
+            @if (Model.TopCategory != null)
+            {
+                <p class="card-text fs-5">@Model.TopCategory.CategoryName</p>
+                <p class="card-text">@Model.TopCategory.Total.ToString("N2") €</p>
+            }
+            else
+            {
+                <p class="card-text">No expenses in this period.</p>
+            }
+        </div>
+    </div>
+</div>
 </div>
 
 <div class="row mt-4">
@@ -104,4 +120,5 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
