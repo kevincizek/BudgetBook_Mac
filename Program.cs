@@ -9,24 +9,59 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddRazorPages();
+builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, NoOpEmailSender>();
+builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.LoginPath = "/Identity/Account/Login";
+        options.LogoutPath = "/Identity/Account/Logout";
+        options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    });
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-// Demo User für Data Seeding - zählt nicht als Hardcoded Credentials
-// weil es nur für Test Daten sind, kann man ohne Probleme löschen
+// Data Seeding
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
+    // Roles
+
+    string[] roles = { "Admin", "User" };
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    // Admin User
+
+    var adminEmail = "admin@example.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+        await userManager.CreateAsync(adminUser, "Admin123!");
+    }
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
+
+    // Demo User
+    // Demo User für Data Seeding - zählt nicht als Hardcoded Credentials
+    // weil es nur für Test Daten sind, kann man ohne Probleme löschen
     var demoEmail = "demo@example.com";
     var demoUser = await userManager.FindByEmailAsync(demoEmail);
     if (demoUser == null)
@@ -34,7 +69,12 @@ using (var scope = app.Services.CreateScope())
         demoUser = new IdentityUser { UserName = demoEmail, Email = demoEmail, EmailConfirmed = true };
         await userManager.CreateAsync(demoUser, "Demo123!");
     }
+    if (!await userManager.IsInRoleAsync(demoUser, "User"))
+    {
+        await userManager.AddToRoleAsync(demoUser, "User");
+    }
 
+    // Demo User Transactions
     if (!context.Transactions.Any())
     {
         var salary = context.Categories.First(c => c.Name == "Salary");
@@ -51,7 +91,11 @@ using (var scope = app.Services.CreateScope())
 
         await context.SaveChangesAsync();
     }
+
 }
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

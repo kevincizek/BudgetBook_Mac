@@ -5,15 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BudgetBook.Controllers;
 
-[Authorize]
 public class HomeController : Controller
 {
+    [Authorize]
     public IActionResult Index()
-    {
-        return View();
-    }
-
-    public IActionResult Privacy()
     {
         return View();
     }
