@@ -24,33 +24,32 @@ namespace BudgetBook.Controllers
         }
 
         // GET: Transactions
-        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, TransactionType? type, int? categoryId)
+        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, TransactionType? type, int? categoryId, string? userId)
         {
-            var userId = _userManager.GetUserId(User);
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
 
             var query = _context.Transactions
                 .Include(t => t.Category)
-                .Where(t => t.UserId == userId);
+                .Include(t => t.User)
+                .AsQueryable();
 
-            if (startDate.HasValue)
+            if (isAdmin)
             {
-                query = query.Where(t => t.BookingDate >= startDate.Value);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    query = query.Where(t => t.UserId == userId);
+                }
+            }
+            else
+            {
+                query = query.Where(t => t.UserId == currentUserId);
             }
 
-            if (endDate.HasValue)
-            {
-                query = query.Where(t => t.BookingDate <= endDate.Value);
-            }
-
-            if (type.HasValue)
-            {
-                query = query.Where(t => t.Type == type.Value);
-            }
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(t => t.CategoryId == categoryId.Value);
-            }
+            if (startDate.HasValue) query = query.Where(t => t.BookingDate >= startDate.Value);
+            if (endDate.HasValue) query = query.Where(t => t.BookingDate <= endDate.Value);
+            if (type.HasValue) query = query.Where(t => t.Type == type.Value);
+            if (categoryId.HasValue) query = query.Where(t => t.CategoryId == categoryId.Value);
 
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
@@ -58,12 +57,18 @@ namespace BudgetBook.Controllers
             ViewBag.SelectedCategoryId = categoryId;
             ViewBag.AllCategories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
 
-            var transactions = await query
-                .Include(t => t.Category)
-                .Where(t => t.UserId == userId)
-                .OrderByDescending(t => t.BookingDate)
-                .ToListAsync();
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.CurrentUserId = currentUserId;
+            if (isAdmin)
+            {
+                ViewBag.SelectedUserId = userId;
+                ViewBag.AllUsers = await _userManager.Users
+                    .OrderBy(u => u.Email)
+                    .Select(u => new { u.Id, u.Email })
+                    .ToListAsync();
+            }
 
+            var transactions = await query.OrderByDescending(t => t.BookingDate).ToListAsync();
             return View(transactions);
         }
 

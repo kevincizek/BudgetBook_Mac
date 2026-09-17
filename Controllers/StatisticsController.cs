@@ -27,25 +27,32 @@ public class StatisticsController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, TransactionType? type, int? categoryId)
+    public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, TransactionType? type, int? categoryId, string? userId)
     {
-        var userId = _userManager.GetUserId(User);
+        var currentUserId = _userManager.GetUserId(User);
+        var isAdmin = User.IsInRole("Admin");
 
         var start = startDate ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         var end = endDate ?? start.AddMonths(1).AddDays(-1);
 
         var transactionsInRange = _context.Transactions
             .Include(t => t.Category)
-            .Where(t => t.UserId == userId && t.BookingDate >= start && t.BookingDate <= end);
+            .Where(t => t.BookingDate >= start && t.BookingDate <= end);
 
-        if (type.HasValue)
+        if (isAdmin)
         {
-            transactionsInRange = transactionsInRange.Where(t => t.Type == type.Value);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                transactionsInRange = transactionsInRange.Where(t => t.UserId == userId);
+            }
+        }
+        else
+        {
+            transactionsInRange = transactionsInRange.Where(t => t.UserId == currentUserId);
         }
 
-        if (categoryId.HasValue) {
-            transactionsInRange = transactionsInRange.Where(t => t.CategoryId == categoryId);
-        }
+        if (type.HasValue) transactionsInRange = transactionsInRange.Where(t => t.Type == type.Value);
+        if (categoryId.HasValue) transactionsInRange = transactionsInRange.Where(t => t.CategoryId == categoryId);
 
         var totalIncome = await transactionsInRange
             .Where(t => t.Type == TransactionType.Income)
@@ -91,6 +98,15 @@ public class StatisticsController : Controller
             ExpensesByCategory = expensesByCategory,
             TransactionsByMonth = transactionsByMonth
         };
+
+        if (isAdmin)
+        {
+            model.SelectedUserId = userId;
+            model.AvailableUsers = await _userManager.Users
+                .OrderBy(u => u.Email)
+                .Select(u => new UserOption { Id = u.Id, Email = u.Email ?? "" })
+                .ToListAsync();
+        }
 
         return View(model);
     }

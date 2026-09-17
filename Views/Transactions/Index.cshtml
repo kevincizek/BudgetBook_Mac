@@ -35,6 +35,19 @@
             }
         </select>
     </div>
+    @if (ViewBag.IsAdmin == true)
+    {
+        <div class="col-auto">
+            <label>User</label>
+            <select name="userId" class="form-control">
+                <option value="">All Users</option>
+                @foreach (var u in ViewBag.AllUsers)
+                {
+                    <option value="@u.Id" selected="@(u.Id == ViewBag.SelectedUserId)">@u.Email</option>
+                }
+            </select>
+        </div>
+    }
     <div class="col-auto align-self-end">
         <button type="submit" class="btn btn-primary">Filter</button>
         <a asp-action="Index" class="btn btn-secondary">Clear Filters</a>
@@ -65,6 +78,7 @@
             <th>
                 Created At
             </th>
+            <th>@(ViewBag.IsAdmin == true ? "Owner" : "")</th>
             <th>
                 Actions
             </th>
@@ -92,11 +106,15 @@
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
+            <td>@(ViewBag.IsAdmin == true ? item.User?.Email : "")</td>
+            @if (item.UserId == (string)ViewBag.CurrentUserId)
+            {
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            }
         </tr>
 }
     </tbody>

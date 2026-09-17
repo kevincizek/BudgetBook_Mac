@@ -34,6 +34,19 @@
             }
         </select>
     </div>
+    @if (Model.AvailableUsers != null)
+    {
+        <div class="col-auto">
+            <label>User</label>
+            <select name="userId" class="form-control">
+                <option value="">All Users</option>
+                @foreach (var u in Model.AvailableUsers)
+                {
+                    <option value="@u.Id" selected="@(u.Id == Model.SelectedUserId)">@u.Email</option>
+                }
+            </select>
+        </div>
+    }
     <div class="col-auto align-self-end">
         <button type="submit" class="btn btn-primary">Filter</button>
         <a asp-action="Index" class="btn btn-secondary">Clear Filters</a>

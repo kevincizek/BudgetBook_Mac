@@ -7,6 +7,9 @@ public class StatisticsViewModel
     public decimal TotalExpense { get; set; }
     public decimal Saldo => TotalIncome - TotalExpense;
 
+    public string? SelectedUserId { get; set; }
+    public List<UserOption>? AvailableUsers { get; set; }
+
     public List<CategorySummary> ExpensesByCategory { get; set; } = new();
     public List<MonthlySummary> TransactionsByMonth { get; set; } = new();
     public CategorySummary? TopCategory => ExpensesByCategory.FirstOrDefault();
